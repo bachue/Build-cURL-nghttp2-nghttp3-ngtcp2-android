@@ -120,6 +120,7 @@ buildAndroid() {
     cd "${NGHTTP2_VERSION}"
 
     ./configure \
+        --disable-shared \
         --disable-app \
         --disable-threads \
         --enable-lib-only \

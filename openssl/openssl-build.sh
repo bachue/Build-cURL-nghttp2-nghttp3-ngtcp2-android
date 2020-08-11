@@ -86,7 +86,7 @@ buildAndroid()
     export PATH="${ANDROID_NDK_HOME}/toolchains/llvm/prebuilt/linux-x86_64/bin:${ANDROID_NDK_HOME}/toolchains/${ANDROID_EABI}/prebuilt/linux-x86_64/bin:$PATH"
     pushd . > /dev/null
     cd openssl
-    ./Configure no-asm ${TARGET} --prefix="/tmp/openssl-${ARCH}" --openssldir="/tmp/openssl-${ARCH}" $CUSTOMCONFIG &> "/tmp/openssl-${ARCH}.log"
+    ./Configure no-shared no-asm ${TARGET} --prefix="/tmp/openssl-${ARCH}" --openssldir="/tmp/openssl-${ARCH}" $CUSTOMCONFIG &> "/tmp/openssl-${ARCH}.log"
     make -j8 >> "/tmp/openssl-${ARCH}.log" 2>&1
     make install_sw -j8 >> "/tmp/openssl-${ARCH}.log" 2>&1
     make clean >> "/tmp/openssl-${ARCH}.log" 2>&1
