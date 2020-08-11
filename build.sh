@@ -14,8 +14,9 @@
 LIBCURL="7.71.1"    # https://curl.haxx.se/download.html
 NGHTTP2="1.41.0"    # https://nghttp2.org/
 
-NDK_VERSION="10e"
+NDK_VERSION="20b"
 ANDROID_EABI_VERSION="4.9"
+ANDROID_API_VERSION="21"
 
 # Global flags
 buildnghttp2="-n"
@@ -43,9 +44,10 @@ usage ()
     echo
     echo -e "${bold}Usage:${normal}"
     echo
-    echo -e "  ${subbold}$0${normal} [-k ${dim}<NDK version>${normal}] [-e ${dim}<EABI version>${normal}] [-c ${dim}<curl version>${normal}] [-n ${dim}<nghttp2 version>${normal}] [-d] [-x] [-h]"
+    echo -e "  ${subbold}$0${normal} [-k ${dim}<NDK version>${normal}] [-a ${dim}<Android API version>${normal}] [-e ${dim}<EABI version>${normal}] [-c ${dim}<curl version>${normal}] [-n ${dim}<nghttp2 version>${normal}] [-d] [-x] [-h]"
     echo
     echo "         -k <version>   Compile with NDK version (default $NDK_VERSION)"
+    echo "         -a <version>   Compile with Android API version (default $ANDROID_API_VERSION)"
     echo "         -e <version>   Compile with EABI version (default $ANDROID_EABI_VERSION)"
     echo "         -c <version>   Build curl version (default $LIBCURL)"
     echo "         -n <version>   Build nghttp2 version (default $NGHTTP2)"
@@ -57,10 +59,13 @@ usage ()
     exit 127
 }
 
-while getopts "k:e:o:c:n:dexh\?" o; do
+while getopts "k:a:e:o:c:n:dexh\?" o; do
     case "${o}" in
         k)
             NDK_VERSION="${OPTARG}"
+            ;;
+        a)
+            ANDROID_API_VERSION="${OPTARG}"
             ;;
         e)
             ANDROID_EABI_VERSION="${OPTARG}"
@@ -94,7 +99,7 @@ done
 shift $((OPTIND-1))
 
 ## Welcome
-echo -e "${bold}Build-OpenSSL-cURL${dim}"
+echo -e "${bold}Build-cURL-nghttp2-nghttp3-ngtcp2${dim}"
 echo "This script builds OpenSSL, nghttp2, ngtcp2, nghttp3 and libcurl for Android devices."
 echo "Targets: x86_64, armv7, armv7s, arm64 and arm64e"
 echo
@@ -103,15 +108,15 @@ set -e
 
 ## NDK Install
 
-if [ ! -f /tmp/android-ndk.zip ]; then
-    wget -c -t 0 --timeout 30 -O /tmp/android-ndk.zip "https://dl.google.com/android/repository/android-ndk-r$NDK_VERSION-linux-x86_64.zip"
+if [ ! -f "/tmp/android-ndk-r${NDK_VERSION}-linux-x86_64.zip" ]; then
+    wget -c -t 0 --timeout 30 -O "/tmp/android-ndk-r${NDK_VERSION}-linux-x86_64.zip" "https://dl.google.com/android/repository/android-ndk-r$NDK_VERSION-linux-x86_64.zip"
 fi
 pushd . > /dev/null
 cd /tmp
-rm -rf "android-ndk-r$NDK_VERSION"
-unzip -qq android-ndk.zip
+rm -rf "android-ndk-r${NDK_VERSION}"
+unzip -qq "android-ndk-r${NDK_VERSION}-linux-x86_64.zip"
 pushd . > /dev/null
-cd "android-ndk-r$NDK_VERSION"
+cd "android-ndk-r${NDK_VERSION}"
 export ANDROID_NDK_HOME="$PWD"
 popd > /dev/null
 popd > /dev/null
@@ -120,7 +125,7 @@ popd > /dev/null
 echo
 cd openssl
 echo -e "${bold}Building OpenSSL${normal}"
-./openssl-build.sh -n "$NDK_VERSION" -e "$ANDROID_EABI_VERSION" $colorflag
+./openssl-build.sh -n "$NDK_VERSION" -a "$ANDROID_API_VERSION" -e "$ANDROID_EABI_VERSION" $colorflag
 cd ..
 
 ## Nghttp2 Build
@@ -130,6 +135,6 @@ else
     echo
     echo -e "${bold}Building nghttp2 for HTTP2 support${normal}"
     cd nghttp2
-    ./nghttp2-build.sh -v "$NGHTTP2" -n "$NDK_VERSION" -e "$ANDROID_EABI_VERSION" $colorflag
+    ./nghttp2-build.sh -v "$NGHTTP2" -n "$NDK_VERSION" -a "$ANDROID_API_VERSION" -e "$ANDROID_EABI_VERSION" $colorflag
     cd ..
 fi
