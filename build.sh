@@ -95,7 +95,7 @@ shift $((OPTIND-1))
 
 ## Welcome
 echo -e "${bold}Build-OpenSSL-cURL${dim}"
-echo "This script builds OpenSSL, nghttp2 and libcurl for MacOS (OS X), iOS and tvOS devices."
+echo "This script builds OpenSSL, nghttp2, ngtcp2, nghttp3 and libcurl for Android devices."
 echo "Targets: x86_64, armv7, armv7s, arm64 and arm64e"
 echo
 
@@ -103,11 +103,13 @@ set -e
 
 ## NDK Install
 
-wget -c -t 0 --timeout 30 -O /tmp/android-ndk.zip "https://dl.google.com/android/repository/android-ndk-r$NDK_VERSION-linux-x86_64.zip"
+if [ ! -f /tmp/android-ndk.zip ]; then
+    wget -c -t 0 --timeout 30 -O /tmp/android-ndk.zip "https://dl.google.com/android/repository/android-ndk-r$NDK_VERSION-linux-x86_64.zip"
+fi
 pushd . > /dev/null
 cd /tmp
-unzip /tmp/android-ndk.zip
-rm /tmp/android-ndk.zip
+rm -rf "android-ndk-r$NDK_VERSION"
+unzip -qq android-ndk.zip
 pushd . > /dev/null
 cd "android-ndk-r$NDK_VERSION"
 export ANDROID_NDK_HOME="$PWD"
