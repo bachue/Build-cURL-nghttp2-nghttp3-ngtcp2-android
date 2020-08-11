@@ -12,7 +12,7 @@
 ################################################
 
 LIBCURL="7.71.1"    # https://curl.haxx.se/download.html
-NGHTTP2="1.42.0"    # https://nghttp2.org/
+NGHTTP2="1.41.0"    # https://nghttp2.org/
 
 NDK_VERSION="10e"
 ANDROID_EABI_VERSION="4.9"
@@ -122,3 +122,14 @@ cd openssl
 echo -e "${bold}Building OpenSSL${normal}"
 ./openssl-build.sh -n "$NDK_VERSION" -e "$ANDROID_EABI_VERSION" $colorflag
 cd ..
+
+## Nghttp2 Build
+if [ "$buildnghttp2" == "" ]; then
+    NGHTTP2="NONE"
+else
+    echo
+    echo -e "${bold}Building nghttp2 for HTTP2 support${normal}"
+    cd nghttp2
+    ./nghttp2-build.sh -v "$NGHTTP2" -n "$NDK_VERSION" -e "$ANDROID_EABI_VERSION" $colorflag
+    cd ..
+fi

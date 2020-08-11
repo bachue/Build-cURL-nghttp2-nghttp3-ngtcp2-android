@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# This script downlaods and builds the Mac, iOS and tvOS openSSL libraries with Bitcode enabled
+# This script downloads and builds the Android openSSL libraries
 
 # Credits:
 #
@@ -87,9 +87,9 @@ buildAndroid()
     pushd . > /dev/null
     cd openssl
     ./Configure no-asm ${TARGET} --prefix="/tmp/openssl-${ARCH}" --openssldir="/tmp/openssl-${ARCH}" $CUSTOMCONFIG &> "/tmp/openssl-${ARCH}.log"
-    make clean > /dev/null
     make -j8 >> "/tmp/openssl-${ARCH}.log" 2>&1
     make install_sw -j8 >> "/tmp/openssl-${ARCH}.log" 2>&1
+    make clean >> "/tmp/openssl-${ARCH}.log" 2>&1
 
     popd > /dev/null
     export PATH="$ORIGINAL_PATH"
