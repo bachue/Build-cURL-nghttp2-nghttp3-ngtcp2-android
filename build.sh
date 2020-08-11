@@ -14,8 +14,10 @@
 LIBCURL="7.71.1"    # https://curl.haxx.se/download.html
 NGHTTP2="1.42.0"    # https://nghttp2.org/
 
+NDK_VERSION="10e"
+ANDROID_EABI_VERSION="4.9"
+
 # Global flags
-engine=""
 buildnghttp2="-n"
 buildngtcp2="-n"
 buildnghttp3="-n"
@@ -41,12 +43,13 @@ usage ()
     echo
     echo -e "${bold}Usage:${normal}"
     echo
-    echo -e "  ${subbold}$0${normal} [-c ${dim}<curl version>${normal}] [-n ${dim}<nghttp2 version>${normal}] [-d] [-e] [-x] [-h]"
+    echo -e "  ${subbold}$0${normal} [-k ${dim}<NDK version>${normal}] [-e ${dim}<EABI version>${normal}] [-c ${dim}<curl version>${normal}] [-n ${dim}<nghttp2 version>${normal}] [-d] [-x] [-h]"
     echo
+    echo "         -k <version>   Compile with NDK version (default $NDK_VERSION)"
+    echo "         -e <version>   Compile with EABI version (default $ANDROID_EABI_VERSION)"
     echo "         -c <version>   Build curl version (default $LIBCURL)"
     echo "         -n <version>   Build nghttp2 version (default $NGHTTP2)"
     echo "         -d             Compile without HTTP2 support"
-    echo "         -e             Compile with OpenSSL engine support"
     echo "         -b             Compile without bitcode"
     echo "         -x             No color output"
     echo "         -h             Show usage"
@@ -54,8 +57,14 @@ usage ()
     exit 127
 }
 
-while getopts "o:c:n:dexh\?" o; do
+while getopts "k:e:o:c:n:dexh\?" o; do
     case "${o}" in
+        k)
+            NDK_VERSION="${OPTARG}"
+            ;;
+        e)
+            ANDROID_EABI_VERSION="${OPTARG}"
+            ;;
         c)
             LIBCURL="${OPTARG}"
             ;;
@@ -64,9 +73,6 @@ while getopts "o:c:n:dexh\?" o; do
             ;;
         d)
             buildnghttp2=""
-            ;;
-        e)
-            engine="-e"
             ;;
         b)
             disablebitcode="-b"
@@ -95,9 +101,22 @@ echo
 
 set -e
 
+## NDK Install
+
+wget -c -t 0 --timeout 30 -O /tmp/android-ndk.zip "https://dl.google.com/android/repository/android-ndk-r$NDK_VERSION-linux-x86_64.zip"
+pushd . > /dev/null
+cd /tmp
+unzip /tmp/android-ndk.zip
+rm /tmp/android-ndk.zip
+pushd . > /dev/null
+cd "android-ndk-r$NDK_VERSION"
+export ANDROID_NDK_HOME="$PWD"
+popd > /dev/null
+popd > /dev/null
+
 ## OpenSSL Build
 echo
 cd openssl
 echo -e "${bold}Building OpenSSL${normal}"
-./openssl-build.sh $engine $colorflag
+./openssl-build.sh -n "$NDK_VERSION" -e "$ANDROID_EABI_VERSION" $colorflag
 cd ..
