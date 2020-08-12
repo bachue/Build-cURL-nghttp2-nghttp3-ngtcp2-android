@@ -138,3 +138,12 @@ else
     ./nghttp2-build.sh -v "$NGHTTP2" -n "$NDK_VERSION" -a "$ANDROID_API_VERSION" -e "$ANDROID_EABI_VERSION" $colorflag
     cd ..
 fi
+
+## Nghttp3 Build
+if [ -n "$buildnghttp3" ]; then
+    echo
+    echo -e "${bold}Building nghttp3 for HTTP3 support${normal}"
+    cd nghttp3
+    ./nghttp3-build.sh -n "$NDK_VERSION" -a "$ANDROID_API_VERSION" -e "$ANDROID_EABI_VERSION" $colorflag
+    cd ..
+fi
