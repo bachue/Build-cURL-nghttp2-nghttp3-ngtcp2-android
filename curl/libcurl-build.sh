@@ -24,7 +24,7 @@ alert="\033[0m${red}\033[1m"
 alertdim="\033[0m${red}\033[2m"
 
 # set trap to help debug any build errors
-trap 'echo -e "${alert}** ERROR with Build - Check /tmp/curl*.log${alertdim}"; tail -3 /tmp/curl*.log' INT TERM EXIT
+trap 'echo -e "${alert}** ERROR with Build - Check /tmp/curl*.log${alertdim}"; tail -n 3 /tmp/curl*.log' INT TERM EXIT
 
 CURL_VERSION="curl-7.71.1"
 NDK_VERSION="20b"
@@ -121,6 +121,8 @@ else
     NGTCP2LIB=""
 fi
 
+CURL="${PWD}/../curl"
+
 buildAndroid() {
     ARCH=$1
     HOST=$2
@@ -131,6 +133,7 @@ buildAndroid() {
 
     pushd . > /dev/null
     cd "${CURL_VERSION}"
+    autoreconf -i
 
     if [ $nohttp2 == "1" ]; then
         NGHTTP2CFG="--with-nghttp2=${NGHTTP2}/${ARCH}"
@@ -144,13 +147,16 @@ buildAndroid() {
     fi
 
     ./configure \
+        --enable-optimize \
+        --enable-shared \
+        --enable-ipv6 \
         --enable-static \
         -with-random=/dev/urandom \
         --with-ssl=/tmp/openssl-${ARCH} \
         ${NGHTTP2CFG} ${NGHTTP3CFG} ${NGTCP2CFG} \
         --host="$HOST" \
         --build=`dpkg-architecture -qDEB_BUILD_GNU_TYPE` \
-        --prefix="${NGTCP2}/${ARCH}" \
+        --prefix="${CURL}/${ARCH}" \
         --enable-alt-svc \
         CC="${ANDROID_NDK_HOME}/toolchains/llvm/prebuilt/linux-x86_64/bin/${TOOLCHAIN_PREFIX}${ANDROID_API_VERSION}-clang" \
         CXX="${ANDROID_NDK_HOME}/toolchains/llvm/prebuilt/linux-x86_64/bin/${TOOLCHAIN_PREFIX}${ANDROID_API_VERSION}-clang++" \
@@ -167,16 +173,18 @@ buildAndroid() {
 echo -e "${bold}Cleaning up${dim}"
 rm -rf "/tmp/${CURL_VERSION}-*" "${CURL_VERSION}"
 
-if [ ! -f "${CURL_VERSION}.tar.gz" ]; then
-    echo "Downloading ${CURL_VERSION}.tar.gz"
-    curl -LO https://curl.haxx.se/download/${CURL_VERSION}.tar.gz
+if [ ! -f "${CURL_VERSION}.zip" ]; then
+    echo "Downloading ${CURL_VERSION}.zip"
+    # curl -LO https://curl.haxx.se/download/${CURL_VERSION}.tar.gz
+    wget -O ${CURL_VERSION}.zip https://github.com/curl/curl/archive/master.zip
 else
-    echo "Using ${CURL_VERSION}.tar.gz"
+    echo "Using ${CURL_VERSION}.zip"
 fi
 
 rm -rf "${CURL_VERSION}"
 echo "Unpacking curl"
-tar xfz "${CURL_VERSION}.tar.gz"
+unzip -qq "${CURL_VERSION}.zip"
+mv curl-master "$CURL_VERSION"
 
 echo "** Building libcurl **"
 buildAndroid x86_64 x86_64 x86_64-linux-android
