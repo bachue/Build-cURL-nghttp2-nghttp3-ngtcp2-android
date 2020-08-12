@@ -114,7 +114,6 @@ checkTool()
 
 checkTool autoreconf autoconf
 checkTool aclocal automake
-checkTool aclocal automake
 checkTool libtool libtool
 checkTool git git
 
