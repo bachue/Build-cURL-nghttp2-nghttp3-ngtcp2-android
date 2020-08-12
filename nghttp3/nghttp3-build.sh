@@ -137,9 +137,10 @@ buildAndroid() {
         --prefix="${NGHTTP3}/${ARCH}" \
         CC="${ANDROID_NDK_HOME}/toolchains/llvm/prebuilt/linux-x86_64/bin/${TOOLCHAIN_PREFIX}${ANDROID_API_VERSION}-clang" \
         CXX="${ANDROID_NDK_HOME}/toolchains/llvm/prebuilt/linux-x86_64/bin/${TOOLCHAIN_PREFIX}${ANDROID_API_VERSION}-clang++" \
+        CFLAGS="-arch ${ARCH} -pipe -Os" \
         CPPFLAGS="-fPIE -I$PREFIX/include" \
         PKG_CONFIG_LIBDIR="${ANDROID_NDK_HOME}/prebuilt/linux-x86_64/lib/pkgconfig" \
-        LDFLAGS="-fPIE -pie -L$PREFIX/lib" &> "/tmp/nghttp3-${ARCH}.log"
+        LDFLAGS="-arch ${ARCH} -fPIE -pie -L$PREFIX/lib" &> "/tmp/nghttp3-${ARCH}.log"
     LANG=C sed -i -- 's/define HAVE_FORK 1/define HAVE_FORK 0/' "config.h"
 
     make -j8 >> "/tmp/nghttp3-${ARCH}.log" 2>&1

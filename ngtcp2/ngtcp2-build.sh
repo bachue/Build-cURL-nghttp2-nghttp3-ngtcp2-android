@@ -134,9 +134,10 @@ buildAndroid() {
         --prefix="${NGTCP2}/${ARCH}" \
         CC="${ANDROID_NDK_HOME}/toolchains/llvm/prebuilt/linux-x86_64/bin/${TOOLCHAIN_PREFIX}${ANDROID_API_VERSION}-clang" \
         CXX="${ANDROID_NDK_HOME}/toolchains/llvm/prebuilt/linux-x86_64/bin/${TOOLCHAIN_PREFIX}${ANDROID_API_VERSION}-clang++" \
+        CFLAGS="-arch ${ARCH} -pipe -Os" \
         CPPFLAGS="-fPIE -I$PREFIX/include" \
         PKG_CONFIG_LIBDIR="${ANDROID_NDK_HOME}/prebuilt/linux-x86_64/lib/pkgconfig:/tmp/openssl-${ARCH}/lib/pkgconfig:${PWD}/../nghttp3/${ARCH}/lib/pkgconfig" \
-        LDFLAGS="-fPIE -pie -L$PREFIX/lib -L${PWD}/../openssl/${ARCH}/lib -L${PWD}/../nghttp3/${ARCH}/lib -Wl,-rpath,/tmp/openssl-${ARCH}/lib" &> "/tmp/ngtcp2-${ARCH}.log"
+        LDFLAGS="-arch ${ARCH} -fPIE -pie -L$PREFIX/lib -L${PWD}/../openssl/${ARCH}/lib -L${PWD}/../nghttp3/${ARCH}/lib -Wl,-rpath,/tmp/openssl-${ARCH}/lib" &> "/tmp/ngtcp2-${ARCH}.log"
 
     make -j8 >> "/tmp/ngtcp2-${ARCH}.log" 2>&1
     make install >> "/tmp/ngtcp2-${ARCH}.log" 2>&1

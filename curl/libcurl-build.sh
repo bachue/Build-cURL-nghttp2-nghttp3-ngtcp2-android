@@ -127,7 +127,8 @@ buildAndroid() {
     ARCH=$1
     HOST=$2
     TOOLCHAIN_PREFIX=$3
-    PREFIX="${ANDROID_NDK_HOME}/platforms/android-${ANDROID_API_VERSION}/arch-${ARCH}"/usr
+    TOOLCHAIN=$4
+    PREFIX="${ANDROID_NDK_HOME}/platforms/android-${ANDROID_API_VERSION}/arch-${ARCH}/usr"
 
     echo -e "${subbold}Building libcurl for ${archbold}${ARCH}${dim}"
 
@@ -148,11 +149,11 @@ buildAndroid() {
 
     ./configure \
         --enable-optimize \
-        --enable-shared \
         --enable-ipv6 \
-        --enable-static \
-        -with-random=/dev/urandom \
+        --with-pic \
+        --with-random=/dev/urandom \
         --with-ssl=/tmp/openssl-${ARCH} \
+        --with-zlib \
         ${NGHTTP2CFG} ${NGHTTP3CFG} ${NGTCP2CFG} \
         --host="$HOST" \
         --build=`dpkg-architecture -qDEB_BUILD_GNU_TYPE` \
@@ -160,9 +161,15 @@ buildAndroid() {
         --enable-alt-svc \
         CC="${ANDROID_NDK_HOME}/toolchains/llvm/prebuilt/linux-x86_64/bin/${TOOLCHAIN_PREFIX}${ANDROID_API_VERSION}-clang" \
         CXX="${ANDROID_NDK_HOME}/toolchains/llvm/prebuilt/linux-x86_64/bin/${TOOLCHAIN_PREFIX}${ANDROID_API_VERSION}-clang++" \
+        AR="${ANDROID_NDK_HOME}/toolchains/llvm/prebuilt/linux-x86_64/bin/${TOOLCHAIN}-ar" \
+        AS="${ANDROID_NDK_HOME}/toolchains/llvm/prebuilt/linux-x86_64/bin/${TOOLCHAIN}-as" \
+        LD="${ANDROID_NDK_HOME}/toolchains/llvm/prebuilt/linux-x86_64/bin/${TOOLCHAIN}-ld" \
+        RANLIB="${ANDROID_NDK_HOME}/toolchains/llvm/prebuilt/linux-x86_64/bin/${TOOLCHAIN}-ranlib" \
+        STRIP="${ANDROID_NDK_HOME}/toolchains/llvm/prebuilt/linux-x86_64/bin/${TOOLCHAIN}-strip" \
+        CFLAGS="-arch ${ARCH} -pipe -Os" \
         CPPFLAGS="-fPIE -I$PREFIX/include" \
         PKG_CONFIG_LIBDIR="${ANDROID_NDK_HOME}/prebuilt/linux-x86_64/lib/pkgconfig:/tmp/openssl-${ARCH}/lib/pkgconfig:${PWD}/../nghttp3/${ARCH}/lib/pkgconfig:${PWD}/../ngtcp2/${ARCH}/lib/pkgconfig" \
-        LDFLAGS="-fPIE -pie -L$PREFIX/lib -Wl,-rpath,/tmp/openssl-${ARCH}/lib" &> "/tmp/curl-${ARCH}.log"
+        LDFLAGS="-arch ${ARCH} -fPIE -pie -L$PREFIX/lib -Wl,-rpath,/tmp/openssl-${ARCH}/lib" &> "/tmp/curl-${ARCH}.log"
 
     make -j8 >> "/tmp/curl-${ARCH}.log" 2>&1
     make install >> "/tmp/curl-${ARCH}.log" 2>&1
@@ -187,9 +194,9 @@ unzip -qq "${CURL_VERSION}.zip"
 mv curl-master "$CURL_VERSION"
 
 echo "** Building libcurl **"
-buildAndroid x86_64 x86_64 x86_64-linux-android
-buildAndroid arm arm-linux-androideabi armv7a-linux-androideabi
-buildAndroid arm64 aarch64-linux-android aarch64-linux-android
+buildAndroid x86_64 x86_64 x86_64-linux-android x86_64-linux-android
+buildAndroid arm arm-linux-androideabi armv7a-linux-androideabi arm-linux-androideabi
+buildAndroid arm64 aarch64-linux-android aarch64-linux-android aarch64-linux-android
 
 #reset trap
 trap - INT TERM EXIT
