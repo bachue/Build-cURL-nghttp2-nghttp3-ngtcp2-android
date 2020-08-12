@@ -93,7 +93,6 @@ checkTool()
     else
         echo -e "${alertdim}** WARNING: $2 not installed... attempting to install.${dim}"
 
-        # Check to see if Brew is installed
         if ! type "apt" > /dev/null; then
             echo -e "${alert}** FATAL ERROR: apt not installed - unable to install $2 - exiting.${normal}"
             exit
@@ -121,6 +120,7 @@ buildAndroid() {
     ARCH=$1
     HOST=$2
     TOOLCHAIN_PREFIX=$3
+    TOOLCHAIN=$4
     PREFIX="${ANDROID_NDK_HOME}/platforms/android-${ANDROID_API_VERSION}/arch-${ARCH}"/usr
 
     echo -e "${subbold}Building nghttp3 for ${archbold}${ARCH}${dim}"
@@ -137,6 +137,12 @@ buildAndroid() {
         --prefix="${NGHTTP3}/${ARCH}" \
         CC="${ANDROID_NDK_HOME}/toolchains/llvm/prebuilt/linux-x86_64/bin/${TOOLCHAIN_PREFIX}${ANDROID_API_VERSION}-clang" \
         CXX="${ANDROID_NDK_HOME}/toolchains/llvm/prebuilt/linux-x86_64/bin/${TOOLCHAIN_PREFIX}${ANDROID_API_VERSION}-clang++" \
+        AR="${ANDROID_NDK_HOME}/toolchains/llvm/prebuilt/linux-x86_64/bin/${TOOLCHAIN}-ar" \
+        AS="${ANDROID_NDK_HOME}/toolchains/llvm/prebuilt/linux-x86_64/bin/${TOOLCHAIN}-as" \
+        LD="${ANDROID_NDK_HOME}/toolchains/llvm/prebuilt/linux-x86_64/bin/${TOOLCHAIN}-ld" \
+        NM="${ANDROID_NDK_HOME}/toolchains/llvm/prebuilt/linux-x86_64/bin/${TOOLCHAIN}-nm" \
+        RANLIB="${ANDROID_NDK_HOME}/toolchains/llvm/prebuilt/linux-x86_64/bin/${TOOLCHAIN}-ranlib" \
+        STRIP="${ANDROID_NDK_HOME}/toolchains/llvm/prebuilt/linux-x86_64/bin/${TOOLCHAIN}-strip" \
         CFLAGS="-arch ${ARCH} -pipe -Os" \
         CPPFLAGS="-fPIE -I$PREFIX/include" \
         PKG_CONFIG_LIBDIR="${ANDROID_NDK_HOME}/prebuilt/linux-x86_64/lib/pkgconfig" \
@@ -156,9 +162,9 @@ echo "Cloning nghttp3"
 git clone --depth 1 https://github.com/ngtcp2/nghttp3.git
 
 echo "** Building nghttp3 **"
-buildAndroid x86_64 x86_64 x86_64-linux-android
-buildAndroid arm arm-linux-androideabi armv7a-linux-androideabi
-buildAndroid arm64 aarch64-linux-android aarch64-linux-android
+buildAndroid x86_64 x86_64-pc-linux-gnu x86_64-linux-android x86_64-linux-android
+buildAndroid arm arm-linux-androideabi armv7a-linux-androideabi arm-linux-androideabi
+buildAndroid arm64 aarch64-linux-android aarch64-linux-android aarch64-linux-android
 
 #reset trap
 trap - INT TERM EXIT

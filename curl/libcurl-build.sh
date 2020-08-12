@@ -123,6 +123,39 @@ fi
 
 CURL="${PWD}/../curl"
 
+checkTool()
+{
+    TOOL=$1
+    PKG=$2
+
+    if (type "$1" > /dev/null) ; then
+        echo "  $2 already installed"
+    else
+        echo -e "${alertdim}** WARNING: $2 not installed... attempting to install.${dim}"
+
+        if ! type "apt" > /dev/null; then
+            echo -e "${alert}** FATAL ERROR: apt not installed - unable to install $2 - exiting.${normal}"
+            exit
+        else
+            echo "  apt installed - using to install $2"
+            apt install -yqq "$2"
+        fi
+
+        # Check to see if installation worked
+        if (type "$1" > /dev/null) ; then
+            echo "  SUCCESS: $2 installed"
+        else
+            echo -e "${alert}** FATAL ERROR: $2 failed to install - exiting.${normal}"
+            exit
+        fi
+    fi
+}
+
+checkTool autoreconf autoconf
+checkTool aclocal automake
+checkTool libtool libtool
+checkTool git git
+
 buildAndroid() {
     ARCH=$1
     HOST=$2
@@ -153,7 +186,6 @@ buildAndroid() {
         --with-pic \
         --with-random=/dev/urandom \
         --with-ssl=/tmp/openssl-${ARCH} \
-        --with-zlib \
         ${NGHTTP2CFG} ${NGHTTP3CFG} ${NGTCP2CFG} \
         --host="$HOST" \
         --build=`dpkg-architecture -qDEB_BUILD_GNU_TYPE` \
@@ -164,6 +196,7 @@ buildAndroid() {
         AR="${ANDROID_NDK_HOME}/toolchains/llvm/prebuilt/linux-x86_64/bin/${TOOLCHAIN}-ar" \
         AS="${ANDROID_NDK_HOME}/toolchains/llvm/prebuilt/linux-x86_64/bin/${TOOLCHAIN}-as" \
         LD="${ANDROID_NDK_HOME}/toolchains/llvm/prebuilt/linux-x86_64/bin/${TOOLCHAIN}-ld" \
+        NM="${ANDROID_NDK_HOME}/toolchains/llvm/prebuilt/linux-x86_64/bin/${TOOLCHAIN}-nm" \
         RANLIB="${ANDROID_NDK_HOME}/toolchains/llvm/prebuilt/linux-x86_64/bin/${TOOLCHAIN}-ranlib" \
         STRIP="${ANDROID_NDK_HOME}/toolchains/llvm/prebuilt/linux-x86_64/bin/${TOOLCHAIN}-strip" \
         CFLAGS="-arch ${ARCH} -pipe -Os" \
@@ -194,7 +227,7 @@ unzip -qq "${CURL_VERSION}.zip"
 mv curl-master "$CURL_VERSION"
 
 echo "** Building libcurl **"
-buildAndroid x86_64 x86_64 x86_64-linux-android x86_64-linux-android
+buildAndroid x86_64 x86_64-pc-linux-gnu x86_64-linux-android x86_64-linux-android
 buildAndroid arm arm-linux-androideabi armv7a-linux-androideabi arm-linux-androideabi
 buildAndroid arm64 aarch64-linux-android aarch64-linux-android aarch64-linux-android
 

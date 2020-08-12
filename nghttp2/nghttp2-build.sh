@@ -92,34 +92,41 @@ fi
 NGHTTP2_VERSION="nghttp2-${NGHTTP2_VERNUM}"
 NGHTTP2="${PWD}/../nghttp2"
 
-# Check to see if pkg-config is already installed
-if (type "pkg-config" > /dev/null) ; then
-    echo "  pkg-config already installed"
-else
-    echo -e "${alertdim}** WARNING: pkg-config not installed... attempting to install.${dim}"
+checkTool()
+{
+    TOOL=$1
+    PKG=$2
 
-    # Check to see if Apt is installed
-    if ! type "apt" > /dev/null; then
-        echo -e "${alert}** FATAL ERROR: apt not installed - unable to install pkg-config - exiting.${normal}"
-        exit 1
+    if (type "$1" > /dev/null) ; then
+        echo "  $2 already installed"
     else
-        echo "  apt installed - using to install pkg-config"
-        apt install -yqq pkg-config
-    fi
+        echo -e "${alertdim}** WARNING: $2 not installed... attempting to install.${dim}"
 
-    # Check to see if installation worked
-    if (type "pkg-config" > /dev/null) ; then
-        echo "  SUCCESS: pkg-config installed"
-    else
-        echo -e "${alert}** FATAL ERROR: pkg-config failed to install - exiting.${normal}"
-        exit 1
+        if ! type "apt" > /dev/null; then
+            echo -e "${alert}** FATAL ERROR: apt not installed - unable to install $2 - exiting.${normal}"
+            exit
+        else
+            echo "  apt installed - using to install $2"
+            apt install -yqq "$2"
+        fi
+
+        # Check to see if installation worked
+        if (type "$1" > /dev/null) ; then
+            echo "  SUCCESS: $2 installed"
+        else
+            echo -e "${alert}** FATAL ERROR: $2 failed to install - exiting.${normal}"
+            exit
+        fi
     fi
-fi
+}
+
+checkTool pkg-config pkg-config
 
 buildAndroid() {
     ARCH=$1
     HOST=$2
     TOOLCHAIN_PREFIX=$3
+    TOOLCHAIN=$4
     PREFIX="${ANDROID_NDK_HOME}/platforms/android-${ANDROID_API_VERSION}/arch-${ARCH}"/usr
 
     echo -e "${subbold}Building ${NGHTTP2_VERSION} for ${archbold}${ARCH}${dim}"
@@ -140,6 +147,12 @@ buildAndroid() {
         --prefix="${NGHTTP2}/${ARCH}" \
         CC="${ANDROID_NDK_HOME}/toolchains/llvm/prebuilt/linux-x86_64/bin/${TOOLCHAIN_PREFIX}${ANDROID_API_VERSION}-clang" \
         CXX="${ANDROID_NDK_HOME}/toolchains/llvm/prebuilt/linux-x86_64/bin/${TOOLCHAIN_PREFIX}${ANDROID_API_VERSION}-clang++" \
+        AR="${ANDROID_NDK_HOME}/toolchains/llvm/prebuilt/linux-x86_64/bin/${TOOLCHAIN}-ar" \
+        AS="${ANDROID_NDK_HOME}/toolchains/llvm/prebuilt/linux-x86_64/bin/${TOOLCHAIN}-as" \
+        LD="${ANDROID_NDK_HOME}/toolchains/llvm/prebuilt/linux-x86_64/bin/${TOOLCHAIN}-ld" \
+        NM="${ANDROID_NDK_HOME}/toolchains/llvm/prebuilt/linux-x86_64/bin/${TOOLCHAIN}-nm" \
+        RANLIB="${ANDROID_NDK_HOME}/toolchains/llvm/prebuilt/linux-x86_64/bin/${TOOLCHAIN}-ranlib" \
+        STRIP="${ANDROID_NDK_HOME}/toolchains/llvm/prebuilt/linux-x86_64/bin/${TOOLCHAIN}-strip" \
         CFLAGS="-arch ${ARCH} -pipe -Os" \
         CPPFLAGS="-fPIE -I$PREFIX/include" \
         PKG_CONFIG_LIBDIR="${ANDROID_NDK_HOME}/prebuilt/linux-x86_64/lib/pkgconfig" \
@@ -164,9 +177,9 @@ echo "Unpacking nghttp2"
 tar xfz "${NGHTTP2_VERSION}.tar.gz"
 
 echo "** Building ${NGHTTP2_VERSION} **"
-buildAndroid x86_64 x86_64 x86_64-linux-android
-buildAndroid arm arm-linux-androideabi armv7a-linux-androideabi
-buildAndroid arm64 aarch64-linux-android aarch64-linux-android
+buildAndroid x86_64 x86_64-pc-linux-gnu x86_64-linux-android x86_64-linux-android
+buildAndroid arm arm-linux-androideabi armv7a-linux-androideabi arm-linux-androideabi
+buildAndroid arm64 aarch64-linux-android aarch64-linux-android aarch64-linux-android
 
 #reset trap
 trap - INT TERM EXIT
