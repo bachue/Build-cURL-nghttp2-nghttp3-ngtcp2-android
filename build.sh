@@ -19,10 +19,8 @@ ANDROID_EABI_VERSION="4.9"
 ANDROID_API_VERSION="21"
 
 # Global flags
-buildnghttp2="-n"
-buildngtcp2="-n"
-buildnghttp3="-n"
-disablebitcode=""
+buildnghttp2="-2"
+buildngtcp2="-3"
 colorflag=""
 
 # Formatting
@@ -44,7 +42,7 @@ usage ()
     echo
     echo -e "${bold}Usage:${normal}"
     echo
-    echo -e "  ${subbold}$0${normal} [-k ${dim}<NDK version>${normal}] [-a ${dim}<Android API version>${normal}] [-e ${dim}<EABI version>${normal}] [-c ${dim}<curl version>${normal}] [-n ${dim}<nghttp2 version>${normal}] [-d] [-x] [-h]"
+    echo -e "  ${subbold}$0${normal} [-k ${dim}<NDK version>${normal}] [-a ${dim}<Android API version>${normal}] [-e ${dim}<EABI version>${normal}] [-c ${dim}<curl version>${normal}] [-n ${dim}<nghttp2 version>${normal}] [-d] [-f] [-x] [-h]"
     echo
     echo "         -k <version>   Compile with NDK version (default $NDK_VERSION)"
     echo "         -a <version>   Compile with Android API version (default $ANDROID_API_VERSION)"
@@ -52,14 +50,14 @@ usage ()
     echo "         -c <version>   Build curl version (default $LIBCURL)"
     echo "         -n <version>   Build nghttp2 version (default $NGHTTP2)"
     echo "         -d             Compile without HTTP2 support"
-    echo "         -b             Compile without bitcode"
+    echo "         -f             Compile without HTTP3 support"
     echo "         -x             No color output"
     echo "         -h             Show usage"
     echo
     exit 127
 }
 
-while getopts "k:a:e:o:c:n:dexh\?" o; do
+while getopts "k:a:e:o:c:n:dfxh\?" o; do
     case "${o}" in
         k)
             NDK_VERSION="${OPTARG}"
@@ -79,8 +77,8 @@ while getopts "k:a:e:o:c:n:dexh\?" o; do
         d)
             buildnghttp2=""
             ;;
-        b)
-            disablebitcode="-b"
+        f)
+            buildnghttp3=""
             ;;
         x)
             bold=""
@@ -140,7 +138,7 @@ else
 fi
 
 ## Nghttp3 Build
-if [ -n "$buildnghttp3" ]; then
+if [ -n "$buildngtcp2" ]; then
     echo
     echo -e "${bold}Building nghttp3 for HTTP3 support${normal}"
     cd nghttp3
@@ -156,3 +154,10 @@ if [ -n "$buildngtcp2" ]; then
     ./ngtcp2-build.sh -n "$NDK_VERSION" -a "$ANDROID_API_VERSION" -e "$ANDROID_EABI_VERSION" $colorflag
     cd ..
 fi
+
+## Curl Build
+echo
+echo -e "${bold}Building Curl${normal}"
+cd curl
+./libcurl-build.sh -v "$LIBCURL" -n "$NDK_VERSION" -a "$ANDROID_API_VERSION" -e "$ANDROID_EABI_VERSION" $colorflag $buildnghttp2 $buildngtcp2
+cd ..

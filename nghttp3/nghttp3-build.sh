@@ -49,7 +49,7 @@ usage ()
     exit 127
 }
 
-while getopts "v:n:a:e:xh\?" o; do
+while getopts "n:a:e:xh\?" o; do
     case "${o}" in
         n)
             NDK_VERSION="${OPTARG}"

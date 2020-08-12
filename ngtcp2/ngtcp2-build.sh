@@ -48,7 +48,7 @@ usage ()
     exit 127
 }
 
-while getopts "v:n:a:e:xh\?" o; do
+while getopts "n:a:e:xh\?" o; do
     case "${o}" in
         n)
             NDK_VERSION="${OPTARG}"
@@ -148,7 +148,8 @@ echo -e "${bold}Cleaning up${dim}"
 rm -rf ngtcp2
 
 echo "Cloning ngtcp2"
-git clone --depth 1 https://github.com/ngtcp2/ngtcp2.git
+git clone https://github.com/ngtcp2/ngtcp2.git
+(cd ngtcp2 && git checkout -f a09a480c6d3d2ef7633bea55bfd3cf5457b04086)
 
 echo "** Building ngtcp2 **"
 buildAndroid x86_64 x86_64 x86_64-linux-android
