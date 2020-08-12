@@ -1,13 +1,12 @@
 #!/bin/bash
-# This script downloads and builds the Android nghttp3 library
+# This script downloads and builds the Android ngtcp2 library
 #
 # Credits:
 # Bachue Zhou, @bachue
 #   https://github.com/bachue/Build-cURL-nghttp2-nghttp3-ngtcp2-android
 #
-# NGHTTP3 - https://github.com/ngtcp2/nghttp3
+# NGTCP2 - https://github.com/ngtcp2/ngtcp2
 #
-
 set -e
 
 # Formatting
@@ -26,7 +25,7 @@ alert="\033[0m${red}\033[1m"
 alertdim="\033[0m${red}\033[2m"
 
 # set trap to help debug build errors
-trap 'echo -e "${alert}** ERROR with Build - Check /tmp/nghttp3*.log${alertdim}"; tail -n 3 /tmp/nghttp3*.log' INT TERM EXIT
+trap 'echo -e "${alert}** ERROR with Build - Check /tmp/ngtcp2*.log${alertdim}"; tail -n 3 /tmp/ngtcp2*.log' INT TERM EXIT
 
 NDK_VERSION="20b"
 ANDROID_EABI_VERSION="4.9"
@@ -81,7 +80,7 @@ if [ -z "$ANDROID_NDK_HOME" ]; then
     exit 1
 fi
 
-NGHTTP3="${PWD}/../nghttp3"
+NGTCP2="${PWD}/../ngtcp2"
 
 checkTool()
 {
@@ -94,12 +93,12 @@ checkTool()
         echo -e "${alertdim}** WARNING: $2 not installed... attempting to install.${dim}"
 
         # Check to see if Brew is installed
-        if ! type "apt" > /dev/null; then
-            echo -e "${alert}** FATAL ERROR: apt not installed - unable to install $2 - exiting.${normal}"
+        if ! type "brew" > /dev/null; then
+            echo -e "${alert}** FATAL ERROR: brew not installed - unable to install $2 - exiting.${normal}"
             exit
         else
-            echo "  apt installed - using to install $2"
-            apt install -yqq "$2"
+            echo "  brew installed - using to install $2"
+            brew install "$2"
         fi
 
         # Check to see if installation worked
@@ -113,9 +112,6 @@ checkTool()
 }
 
 checkTool autoreconf autoconf
-checkTool aclocal automake
-checkTool aclocal automake
-checkTool libtool libtool
 checkTool git git
 
 buildAndroid() {
@@ -124,10 +120,10 @@ buildAndroid() {
     TOOLCHAIN_PREFIX=$3
     PREFIX="${ANDROID_NDK_HOME}/platforms/android-${ANDROID_API_VERSION}/arch-${ARCH}"/usr
 
-    echo -e "${subbold}Building nghttp3 for ${archbold}${ARCH}${dim}"
+    echo -e "${subbold}Building ngtcp2 for ${archbold}${ARCH}${dim}"
 
     pushd . > /dev/null
-    cd nghttp3
+    cd ngtcp2
     autoreconf -i
 
     ./configure \
@@ -135,27 +131,26 @@ buildAndroid() {
         --enable-lib-only \
         --host="$HOST" \
         --build=`dpkg-architecture -qDEB_BUILD_GNU_TYPE` \
-        --prefix="${NGHTTP3}/${ARCH}" \
+        --prefix="${NGTCP2}/${ARCH}" \
         CC="${ANDROID_NDK_HOME}/toolchains/llvm/prebuilt/linux-x86_64/bin/${TOOLCHAIN_PREFIX}${ANDROID_API_VERSION}-clang" \
         CXX="${ANDROID_NDK_HOME}/toolchains/llvm/prebuilt/linux-x86_64/bin/${TOOLCHAIN_PREFIX}${ANDROID_API_VERSION}-clang++" \
         CPPFLAGS="-fPIE -I$PREFIX/include" \
-        PKG_CONFIG_LIBDIR="${ANDROID_NDK_HOME}/prebuilt/linux-x86_64/lib/pkgconfig" \
-        LDFLAGS="-fPIE -pie -L$PREFIX/lib" &> "/tmp/nghttp3-${ARCH}.log"
-    LANG=C sed -i -- 's/define HAVE_FORK 1/define HAVE_FORK 0/' "config.h"
+        PKG_CONFIG_LIBDIR="${ANDROID_NDK_HOME}/prebuilt/linux-x86_64/lib/pkgconfig:/tmp/openssl-${ARCH}/lib/pkgconfig:${PWD}/../nghttp3/${ARCH}/lib/pkgconfig" \
+        LDFLAGS="-fPIE -pie -L$PREFIX/lib -L${PWD}/../openssl/${ARCH}/lib -L${PWD}/../nghttp3/${ARCH}/lib -Wl,-rpath,/tmp/openssl-${ARCH}/lib" &> "/tmp/ngtcp2-${ARCH}.log"
 
-    make -j8 >> "/tmp/nghttp3-${ARCH}.log" 2>&1
-    make install >> "/tmp/nghttp3-${ARCH}.log" 2>&1
-    make clean >> "/tmp/nghttp3-${ARCH}.log" 2>&1
+    make -j8 >> "/tmp/ngtcp2-${ARCH}.log" 2>&1
+    make install >> "/tmp/ngtcp2-${ARCH}.log" 2>&1
+    make clean >> "/tmp/ngtcp2-${ARCH}.log" 2>&1
     popd > /dev/null
 }
 
 echo -e "${bold}Cleaning up${dim}"
-rm -rf nghttp3
+rm -rf ngtcp2
 
-echo "Cloning nghttp3"
-git clone --depth 1 https://github.com/ngtcp2/nghttp3.git
+echo "Cloning ngtcp2"
+git clone --depth 1 https://github.com/ngtcp2/ngtcp2.git
 
-echo "** Building nghttp3 **"
+echo "** Building ngtcp2 **"
 buildAndroid x86_64 x86_64 x86_64-linux-android
 buildAndroid arm arm-linux-androideabi armv7a-linux-androideabi
 buildAndroid arm64 aarch64-linux-android aarch64-linux-android

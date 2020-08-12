@@ -147,3 +147,12 @@ if [ -n "$buildnghttp3" ]; then
     ./nghttp3-build.sh -n "$NDK_VERSION" -a "$ANDROID_API_VERSION" -e "$ANDROID_EABI_VERSION" $colorflag
     cd ..
 fi
+
+## Ngtcp2 Build
+if [ -n "$buildngtcp2" ]; then
+    echo
+    echo -e "${bold}Building ngtcp2 for HTTP3 support${normal}"
+    cd ngtcp2
+    ./ngtcp2-build.sh -n "$NDK_VERSION" -a "$ANDROID_API_VERSION" -e "$ANDROID_EABI_VERSION" $colorflag
+    cd ..
+fi
