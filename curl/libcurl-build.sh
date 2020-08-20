@@ -26,7 +26,7 @@ alertdim="\033[0m${red}\033[2m"
 # set trap to help debug any build errors
 trap 'echo -e "${alert}** ERROR with Build - Check /tmp/curl*.log${alertdim}"; tail -n 3 /tmp/curl*.log' INT TERM EXIT
 
-CURL_VERSION="curl-7.71.1"
+CURL_VERSION="curl-7.72.0"
 NDK_VERSION="20b"
 ANDROID_EABI_VERSION="4.9"
 ANDROID_API_VERSION="21"
@@ -154,7 +154,6 @@ checkTool()
 checkTool autoreconf autoconf
 checkTool aclocal automake
 checkTool libtool libtool
-checkTool git git
 
 buildAndroid() {
     ARCH=$1
@@ -213,18 +212,16 @@ buildAndroid() {
 echo -e "${bold}Cleaning up${dim}"
 rm -rf "/tmp/${CURL_VERSION}-*" "${CURL_VERSION}"
 
-if [ ! -f "${CURL_VERSION}.zip" ]; then
-    echo "Downloading ${CURL_VERSION}.zip"
-    # curl -LO https://curl.haxx.se/download/${CURL_VERSION}.tar.gz
-    wget -O ${CURL_VERSION}.zip https://github.com/curl/curl/archive/master.zip
+if [ ! -f "${CURL_VERSION}.tar.gz" ]; then
+    echo "Downloading ${CURL_VERSION}.tar.gz"
+    curl -LO https://curl.haxx.se/download/${CURL_VERSION}.tar.gz
 else
-    echo "Using ${CURL_VERSION}.zip"
+    echo "Using ${CURL_VERSION}.tar.gz"
 fi
 
 rm -rf "${CURL_VERSION}"
 echo "Unpacking curl"
-unzip -qq "${CURL_VERSION}.zip"
-mv curl-master "$CURL_VERSION"
+tar xfz "${CURL_VERSION}.tar.gz"
 
 echo "** Building libcurl **"
 buildAndroid x86_64 x86_64-pc-linux-gnu x86_64-linux-android x86_64-linux-android

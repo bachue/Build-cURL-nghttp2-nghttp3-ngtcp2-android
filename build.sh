@@ -11,7 +11,7 @@
 # EDIT this section to Select Default Versions #
 ################################################
 
-LIBCURL="7.71.1"    # https://curl.haxx.se/download.html
+LIBCURL="7.72.0"    # https://curl.haxx.se/download.html
 NGHTTP2="1.41.0"    # https://nghttp2.org/
 
 NDK_VERSION="20b"
