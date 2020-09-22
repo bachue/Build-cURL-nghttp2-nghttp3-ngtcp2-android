@@ -112,6 +112,7 @@ echo "Cloning openssl"
 git clone --depth 1 -b OpenSSL_1_1_1g-quic-draft-29 https://github.com/tatsuhiro-t/openssl.git
 
 echo "** Building OpenSSL 1.1.1 **"
+buildAndroid x86 android-x86 "x86-${ANDROID_EABI_VERSION}"
 buildAndroid x86_64 android-x86_64 "x86_64-${ANDROID_EABI_VERSION}"
 buildAndroid arm android-arm "arm-linux-androideabi-${ANDROID_EABI_VERSION}"
 buildAndroid arm64 android-arm64 "aarch64-linux-android-${ANDROID_EABI_VERSION}"

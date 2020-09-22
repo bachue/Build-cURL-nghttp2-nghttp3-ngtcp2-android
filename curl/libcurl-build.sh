@@ -166,7 +166,7 @@ buildAndroid() {
 
     pushd . > /dev/null
     cd "${CURL_VERSION}"
-    autoreconf -i
+    autoreconf -i -f
 
     if [ $nohttp2 == "1" ]; then
         NGHTTP2CFG="--with-nghttp2=${NGHTTP2}/${ARCH}"
@@ -224,6 +224,7 @@ echo "Unpacking curl"
 tar xfz "${CURL_VERSION}.tar.gz"
 
 echo "** Building libcurl **"
+buildAndroid x86 i686-pc-linux-gnu i686-linux-android i686-linux-android
 buildAndroid x86_64 x86_64-pc-linux-gnu x86_64-linux-android x86_64-linux-android
 buildAndroid arm arm-linux-androideabi armv7a-linux-androideabi arm-linux-androideabi
 buildAndroid arm64 aarch64-linux-android aarch64-linux-android aarch64-linux-android

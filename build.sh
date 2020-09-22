@@ -99,7 +99,7 @@ shift $((OPTIND-1))
 ## Welcome
 echo -e "${bold}Build-cURL-nghttp2-nghttp3-ngtcp2${dim}"
 echo "This script builds OpenSSL, nghttp2, ngtcp2, nghttp3 and libcurl for Android devices."
-echo "Targets: x86_64, armv7, armv7s, arm64 and arm64e"
+echo "Targets: x86, x86_64, armv7, armv7s, arm64 and arm64e"
 echo
 
 set -e
